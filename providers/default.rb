@@ -35,11 +35,11 @@ action :create do
     )
   end
 
-  execute "create #{name} database" do
+  execute "create #{@name} database" do
     command "#{node['mysql']['mysql_bin']} -u root #{node['mysql']['server_root_password'].empty? ? '' : '-p' }\"#{node['mysql']['server_root_password']}\" < #{redmine_sql}"
     action :nothing
     subscribes :run, resources("template[#{redmine_sql}]"), :immediately
-    not_if { ::File.exists?("/var/lib/mysql/#{db_database}") }
+    not_if { ::File.exists?("/var/lib/mysql/#{@db_database}") }
   end
 
   webpath = "/var/www/#{name}"
@@ -47,16 +47,16 @@ action :create do
   web_app "redmine" do
     docroot        ::File.join(webpath, 'public')
     template       "redmine.conf.erb"
-    server_name    "#{name}.#{node['domain']}"
-    server_aliases [ "#{name}", node['hostname'] ]
+    server_name    "#{@name}.#{node['domain']}"
+    server_aliases [ "#{@name}", node['hostname'] ]
     rails_env      @env
   end
 
-  deploy_to = "#{basedir}/#{name}"
+  deploy_to = "#{@basedir}/#{@name}"
   # deploy the Redmine app
   deploy_revision deploy_to do
     repo     @repo
-    revision "#{version}-STABLE"
+    revision "#{@version}-STABLE"
     user     node['apache']['user']
     group    node['apache']['group']
     environment "RAILS_ENV" => @env
