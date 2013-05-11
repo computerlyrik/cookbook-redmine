@@ -113,6 +113,7 @@ deploy_revision node['redmine']['deploy_to'] do
       cwd release_path
     end
 
+    #TODO IMPLEMENT generate_secret_token for 2.x
     execute 'rake generate_session_store' do
       cwd release_path
       not_if { ::File.exists?("#{release_path}/db/schema.rb") }
