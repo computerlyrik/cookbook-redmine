@@ -27,7 +27,7 @@ action :create do
   database = { :adapter => @new_resource.db_adapter, :database => @new_resource.db_database, :username => @new_resource.db_username, :password => @new_resource.db_password }
   databases = {:env => @new_resource.env, :db => database}
   redmine_sql = "/tmp/redmine_#{@new_resource.name}.sql"
-  Chef::Log.error(databases)
+
   template redmine_sql do
     source 'redmine.sql.erb'
     variables(
@@ -45,7 +45,7 @@ action :create do
 
   webpath = "/var/www/#{new_resource.name}"
   # set up the Apache site
-  web_app "redmine" do
+  web_app @new_resource.name do
     docroot        ::File.join(webpath, 'public')
     template       "redmine.conf.erb"
     server_name    "#{new_resource.name}.#{node['domain']}"
