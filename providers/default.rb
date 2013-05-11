@@ -43,21 +43,21 @@ action :create do
     not_if { ::File.exists?("/var/lib/mysql/#{@new_resource.db_database}") }
   end
 
-  webpath = "/var/www/#{@new_resource.name}"
+  webpath = "/var/www/#{new_resource.name}"
   # set up the Apache site
   web_app "redmine" do
     docroot        ::File.join(webpath, 'public')
     template       "redmine.conf.erb"
-    server_name    "#{@new_resource.name}.#{node['domain']}"
-    server_aliases [ "#{@new_resource.name}", node['hostname'] ]
+    server_name    "#{new_resource.name}.#{node['domain']}"
+    server_aliases [ @new_resource.name, node['hostname'] ]
     rails_env      @new_resource.env
   end
 
-  deploy_to = "#{@new_resource.basedir}/#{@new_resource.name}"
+  deploy_to = "#{new_resource.basedir}/#{new_resource.name}"
   # deploy the Redmine app
   deploy_revision deploy_to do
     repo     @new_resource.repo
-    revision "#{@new_resource.version}-STABLE"
+    revision "#{new_resource.version}-STABLE"
     user     node['apache']['user']
     group    node['apache']['group']
     environment "RAILS_ENV" => @new_resource.env
