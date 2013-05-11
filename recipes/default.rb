@@ -31,6 +31,10 @@ include_recipe "passenger_apache2::mod_rails"
 include_recipe "mysql::server"
 include_recipe "git"
 
+# this is because is the only site. Otherwise it should be removed
+apache_site "000-default" do
+  enable false
+end
 
 # install the dependencies
 packages = node['redmine']['packages'].values.flatten
@@ -46,88 +50,13 @@ node['redmine']['gems'].each_pair do |gem,ver|
 end
 
 
-# set up the database
-redmine_sql = '/tmp/redmine.sql'
-template redmine_sql do
-  source 'redmine.sql.erb'
-  variables(
-    :host => 'localhost',
-    :databases => node['redmine']['databases']
-  )
-end
-
-execute "create redmine database" do
-  command "#{node['mysql']['mysql_bin']} -u root #{node['mysql']['server_root_password'].empty? ? '' : '-p' }\"#{node['mysql']['server_root_password']}\" < #{redmine_sql}"
-  action :nothing
-  subscribes :run, resources("template[#{redmine_sql}]"), :immediately
-  not_if { ::File.exists?("/var/lib/mysql/redmine") }
-end
-
-
-# set up the Apache site
-web_app "redmine" do
-  docroot        ::File.join(node['redmine']['path'], 'public')
-  template       "redmine.conf.erb"
-  server_name    "redmine.#{node['domain']}"
-  server_aliases [ "redmine", node['hostname'] ]
-  rails_env      node['redmine']['env']
-end
-
-# this is because is the only site. Otherwise it should be removed
-apache_site "000-default" do
-  enable false
-end
-
-# deploy the Redmine app
-deploy_revision node['redmine']['deploy_to'] do
-  repo     node['redmine']['repo']
-  revision node['redmine']['revision']
-  user     node['apache']['user']
-  group    node['apache']['group']
-  environment "RAILS_ENV" => node['redmine']['env']
-  shallow_clone true
-
-  before_migrate do
-    %w{config log system pids}.each do |dir|
-      directory "#{node['redmine']['deploy_to']}/shared/#{dir}" do
-        owner node['apache']['user']
-        group node['apache']['group']
-        mode '0755'
-        recursive true
-      end
-    end
-
-    template "#{node['redmine']['deploy_to']}/shared/config/database.yml" do
-      source "database.yml.erb"
-      owner node['redmine']['user']
-      group node['redmine']['group']
-      mode "644"
-      variables(
-        :host => 'localhost',
-        :databases => node['redmine']['databases'],
-        :rails_env => node['redmine']['env']
-      )
-    end
-
-    execute 'bundle install --without development test' do
-      cwd release_path
-    end
-
-    #TODO IMPLEMENT generate_secret_token for 2.x
-    execute 'rake generate_session_store' do
-      cwd release_path
-      not_if { ::File.exists?("#{release_path}/db/schema.rb") }
-    end
-  end
-
-  migrate true
-  migration_command 'rake db:migrate'
-
-  before_restart do
-    link node['redmine']['path'] do
-      to release_path
-    end
-  end
-  action :deploy
-  notifies :restart, "service[apache2]"
+redmine node["redmine"]["alias"] do
+  repository node["redmine"]["repo"]
+  version node["redmine"]["revision"]
+  basedir node["redmine"]["deploy_to"]
+  env node["redmine"]["env"]
+  db_adapter node["redmine"]["databases"]["production"]["adapter"]
+  db_database node["redmine"]["databases"]["production"]["database"]
+  db_username node["redmine"]["databases"]["production"]["username"]
+  db_password node["redmine"]["databases"]["production"]["password"]
 end
