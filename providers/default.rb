@@ -24,9 +24,9 @@
 action :create do
 
   # set up the databas
-  database = { :adapter => @db_adapter, :database => @db_database, :username => @db_username, :password => @db_password }
-  databases = {:env => @env, :db => database}
-  redmine_sql = "/tmp/redmine_#{@name}.sql"
+  database = { :adapter => @new_resource.db_adapter, :database => @new_resource.db_database, :username => @new_resource.db_username, :password => @new_resource.db_password }
+  databases = {:env => @new_resource.env, :db => database}
+  redmine_sql = "/tmp/redmine_#{@new_resource.name}.sql"
   Chef::Log.error(databases)
   template redmine_sql do
     source 'redmine.sql.erb'
@@ -36,31 +36,31 @@ action :create do
     )
   end
 
-  execute "create #{@name} database" do
+  execute "create #{@new_resource.name} database" do
     command "#{node['mysql']['mysql_bin']} -u root #{node['mysql']['server_root_password'].empty? ? '' : '-p' }\"#{node['mysql']['server_root_password']}\" < #{redmine_sql}"
     action :nothing
     subscribes :run, resources("template[#{redmine_sql}]"), :immediately
-    not_if { ::File.exists?("/var/lib/mysql/#{@db_database}") }
+    not_if { ::File.exists?("/var/lib/mysql/#{@new_resource.db_database}") }
   end
 
-  webpath = "/var/www/#{@name}"
+  webpath = "/var/www/#{@new_resource.name}"
   # set up the Apache site
   web_app "redmine" do
     docroot        ::File.join(webpath, 'public')
     template       "redmine.conf.erb"
-    server_name    "#{@name}.#{node['domain']}"
-    server_aliases [ "#{@name}", node['hostname'] ]
-    rails_env      @env
+    server_name    "#{@new_resource.name}.#{node['domain']}"
+    server_aliases [ "#{@new_resource.name}", node['hostname'] ]
+    rails_env      @new_resource.env
   end
 
-  deploy_to = "#{@basedir}/#{@name}"
+  deploy_to = "#{@new_resource.basedir}/#{@new_resource.name}"
   # deploy the Redmine app
   deploy_revision deploy_to do
-    repo     @repo
-    revision "#{@version}-STABLE"
+    repo     @new_resource.repo
+    revision "#{@new_resource.version}-STABLE"
     user     node['apache']['user']
     group    node['apache']['group']
-    environment "RAILS_ENV" => @env
+    environment "RAILS_ENV" => @new_resource.env
     shallow_clone true
 
     before_migrate do
@@ -81,7 +81,7 @@ action :create do
         variables(
           :host => 'localhost',
           :databases => databases,
-          :rails_env => @env
+          :rails_env => @new_resource.env
         )
       end
 
