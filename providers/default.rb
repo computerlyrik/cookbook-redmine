@@ -25,13 +25,13 @@ include Chef::Mixin::LanguageIncludeRecipe
 action :create do
 
   # set up the databas
-  database = { :adapter => db_adapter, :database => db_database, :username => db_username, :password => db_password }
+  database = { :adapter => @db_adapter, :database => @db_database, :username => @db_username, :password => @db_password }
   redmine_sql = '/tmp/redmine_#{new_resource.name}.sql'
   template redmine_sql do
     source 'redmine.sql.erb'
     variables(
       :host => 'localhost',
-      :databases => {:env => env, :db => database}
+      :databases => {:env => @env, :db => database}
     )
   end
 
@@ -49,17 +49,17 @@ action :create do
     template       "redmine.conf.erb"
     server_name    "#{name}.#{node['domain']}"
     server_aliases [ "#{name}", node['hostname'] ]
-    rails_env      env
+    rails_env      @env
   end
 
   deploy_to = "#{basedir}/#{name}"
   # deploy the Redmine app
   deploy_revision deploy_to do
-    repo     repo
+    repo     @repo
     revision "#{version}-STABLE"
     user     node['apache']['user']
     group    node['apache']['group']
-    environment "RAILS_ENV" => env
+    environment "RAILS_ENV" => @env
     shallow_clone true
 
     before_migrate do
@@ -79,8 +79,8 @@ action :create do
         mode "644"
         variables(
           :host => 'localhost',
-          :databases => {:env => env, :db => database},
-          :rails_env => env
+          :databases => {:env => @env, :db => database},
+          :rails_env => @env
         )
       end
 
