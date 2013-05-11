@@ -19,19 +19,20 @@
 #
 
 
-include Opscode::OpenSSL::Password
-include Chef::Mixin::LanguageIncludeRecipe
+
 
 action :create do
 
   # set up the databas
   database = { :adapter => @db_adapter, :database => @db_database, :username => @db_username, :password => @db_password }
-  redmine_sql = '/tmp/redmine_#{new_resource.name}.sql'
+  databases = {:env => @env, :db => database}
+  redmine_sql = "/tmp/redmine_#{@name}.sql"
+  Chef::Log.error(databases)
   template redmine_sql do
     source 'redmine.sql.erb'
     variables(
       :host => 'localhost',
-      :databases => {:env => @env, :db => database}
+      :databases => databases
     )
   end
 
@@ -42,7 +43,7 @@ action :create do
     not_if { ::File.exists?("/var/lib/mysql/#{@db_database}") }
   end
 
-  webpath = "/var/www/#{name}"
+  webpath = "/var/www/#{@name}"
   # set up the Apache site
   web_app "redmine" do
     docroot        ::File.join(webpath, 'public')
@@ -79,7 +80,7 @@ action :create do
         mode "644"
         variables(
           :host => 'localhost',
-          :databases => {:env => @env, :db => database},
+          :databases => databases,
           :rails_env => @env
         )
       end

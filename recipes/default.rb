@@ -25,6 +25,8 @@ when "debian","ubuntu"
   include_recipe "apt"
 end
 
+include Opscode::OpenSSL::Password
+
 include_recipe "apache2"
 include_recipe "apache2::mod_rewrite"
 include_recipe "passenger_apache2::mod_rails"
