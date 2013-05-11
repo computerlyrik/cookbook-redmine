@@ -21,6 +21,8 @@ actions :create #TODO, :start, :disable
 
 default_action :create
 
+attribute :name, :kind_of => String, :name_attribute => true
+
 attribute :repository, :kind_of => String, :default =>  "git://github.com/redmine/redmine.git"
 attribute :version, :kind_of => String, :required => true
 
