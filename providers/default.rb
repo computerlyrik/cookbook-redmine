@@ -58,7 +58,7 @@ action :create do
 
   deploy_to = "#{new_resource.basedir}/#{new_resource.name}"
   repo = @new_resource.repository
-  version = "#{new_resource.version}-STABLE"
+  version = "#{new_resource.version}-stable"
   # deploy the Redmine app
   deploy_revision deploy_to do
     repo     repo
