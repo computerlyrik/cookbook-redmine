@@ -44,13 +44,14 @@ action :create do
   end
 
   webpath = "/var/www/#{new_resource.name}"
+  server_name = "#{new_resource.name}.#{node['domain']}"
   # set up the Apache site
   web_app @new_resource.name do
     docroot        ::File.join(webpath, 'public')
     template       "redmine.conf.erb"
-    server_name    "#{new_resource.name}.#{node['domain']}"
-    server_aliases [ @new_resource.name, node['hostname'] ]
-    rails_env      @new_resource.env
+    server_name    server_name
+    server_aliases [ new_resource.name, node['hostname'] ]
+    rails_env      new_resource.env
   end
 
   deploy_to = "#{new_resource.basedir}/#{new_resource.name}"
@@ -90,7 +91,7 @@ action :create do
       end
       
       # generate_secret_token for 2.x , session_store for 1.x
-      cmd = node['redmine']['version'] < 2 ? "generate_session_store" : "generate_secret_token"
+      cmd = @new_resource.version < 2 ? "generate_session_store" : "generate_secret_token"
       execute cmd do
         cwd release_path
         not_if { ::File.exists?("#{release_path}/db/schema.rb") }

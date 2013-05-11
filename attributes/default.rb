@@ -3,7 +3,7 @@ default["redmine"]["env"]       = 'production'
 default["redmine"]["repo"]      = 'git://github.com/redmine/redmine.git'
 default["redmine"]["revision"]  = '1.4.1'
 default["redmine"]["deploy_to"] = '/opt/redmine'
-default["redmine"]["alias"] = 'redmine'
+default["redmine"]["alias"] = "redmine"
 default["redmine"]["path"]      = '/var/www/#{node[:redmine][:alias]}'
 
 # databases
