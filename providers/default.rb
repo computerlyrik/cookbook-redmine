@@ -45,23 +45,27 @@ action :create do
 
   webpath = "/var/www/#{new_resource.name}"
   server_name = "#{new_resource.name}.#{node['domain']}"
+  server_aliases = [ @new_resource.name, node['hostname'] ]
+  env = @new_resource.env
   # set up the Apache site
   web_app @new_resource.name do
     docroot        ::File.join(webpath, 'public')
     template       "redmine.conf.erb"
     server_name    server_name
-    server_aliases [ new_resource.name, node['hostname'] ]
-    rails_env      new_resource.env
+    server_aliases server_aliases
+    rails_env      env
   end
 
   deploy_to = "#{new_resource.basedir}/#{new_resource.name}"
+  repo = @new_resource.repo
+  version = "#{new_resource.version}-STABLE"
   # deploy the Redmine app
   deploy_revision deploy_to do
-    repo     @new_resource.repo
-    revision "#{new_resource.version}-STABLE"
+    repo     repo
+    revision version
     user     node['apache']['user']
     group    node['apache']['group']
-    environment "RAILS_ENV" => @new_resource.env
+    environment "RAILS_ENV" => env
     shallow_clone true
 
     before_migrate do
@@ -82,7 +86,7 @@ action :create do
         variables(
           :host => 'localhost',
           :databases => databases,
-          :rails_env => @new_resource.env
+          :rails_env => env
         )
       end
 
@@ -91,7 +95,7 @@ action :create do
       end
       
       # generate_secret_token for 2.x , session_store for 1.x
-      cmd = @new_resource.version < 2 ? "generate_session_store" : "generate_secret_token"
+      cmd = version < 2 ? "generate_session_store" : "generate_secret_token"
       execute cmd do
         cwd release_path
         not_if { ::File.exists?("#{release_path}/db/schema.rb") }
