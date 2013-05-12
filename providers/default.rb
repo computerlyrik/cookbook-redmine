@@ -28,7 +28,7 @@ action :create do
   environment = @new_resource.env
   adapter = @new_resource.db_adapter
 
-  database = {:adapter => @new_resource.db_adapter, :database => @new_resource.db_database, :user => @new_resource.db_username, :password => @new_resource.db_password}
+  database = {'adapter' => @new_resource.db_adapter, 'database' => @new_resource.db_database, 'user' => @new_resource.db_username, 'password' => @new_resource.db_password}
 
   case adapter
   when "mysql"
