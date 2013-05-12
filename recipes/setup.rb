@@ -40,7 +40,7 @@ apache_site "000-default" do
 end
 
 #Install Bundler
-if platform?("debian","ubuntu")
+if platform?("ubuntu")
   if node['platform_version'].to_f < 10.10
     %w{libopenssl-ruby rake}.each do |package_name|
       package package_name do
