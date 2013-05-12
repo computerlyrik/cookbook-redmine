@@ -68,7 +68,7 @@ action :create do
     user     node['apache']['user']
     group    node['apache']['group']
     environment "RAILS_ENV" => env
-    shallow_clone true
+    shallow_clone false
 
     before_migrate do
       %w{config log system pids}.each do |dir|
