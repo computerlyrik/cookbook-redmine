@@ -23,31 +23,69 @@
 
 action :create do
 
-  # set up the databas
-  database = { :adapter => @new_resource.db_adapter, :database => @new_resource.db_database, :username => @new_resource.db_username, :password => @new_resource.db_password }
-  databases = {@new_resource.env => database}
-  redmine_sql = "/tmp/redmine_#{@new_resource.name}.sql"
 
-  template redmine_sql do
-    cookbook "redmine"
-    source 'redmine.sql.erb'
-    variables(
-      :host => 'localhost',
-      :databases => databases
-    )
+# Some handy vars
+environment = @new_resource.env
+adapter = @new_resource.db_adapter
+
+database = {:adapter => @new_resource.db_adapter, :database => @new_resource.db_database, :user => @new_resource.db_username, :password => @new_resource.db_password}
+
+
+
+
+
+  case adapter
+  when "mysql"
+    include_recipe "mysql::server"
+    include_recipe "database::mysql"
+  when "postgresql"
+    include_recipe "postgresql::server"
+    include_recipe "database::postgresql"
   end
 
-  execute "create #{@new_resource.name} database" do
-    command "#{node['mysql']['mysql_bin']} -u root #{node['mysql']['server_root_password'].empty? ? '' : '-p' }\"#{node['mysql']['server_root_password']}\" < #{redmine_sql}"
-    action :nothing
-    subscribes :run, resources("template[#{redmine_sql}]"), :immediately
-    not_if { ::File.exists?("/var/lib/mysql/#{new_resource.db_database}") }
+
+  case adapter
+  when "mysql"
+    connection_info = {
+      :host => "localhost",
+      :username => 'root',
+      :password => node['mysql']['server_root_password'].empty? ? '' : node['mysql']['server_root_password']
+    }
+  when "postgresql"
+    connection_info = {
+      :host => "localhost",
+      :username => 'postgres',
+      :password => node['postgresql']['password']['postgres'].empty? ? '' : node['postgresql']['password']['postgres']
+    }
+  end
+
+  database @new_resource.db_database do
+    connection connection_info
+    case adapter
+    when "mysql"
+      provider Chef::Provider::Database::Mysql
+    when "postgresql"
+      provider Chef::Provider::Database::Postgresql
+    end
+    action :create
+  end
+
+  database_user @new_resource.db_username do
+    connection connection_info
+    password new_resource.db_password
+    case adapter
+    when "mysql"
+      provider Chef::Provider::Database::MysqlUser
+    when "postgresql"
+      provider Chef::Provider::Database::PostgresqlUser
+    end
+    action :create
   end
 
   webpath = "/var/www/#{new_resource.name}"
   server_name = "#{new_resource.name}.#{node['domain']}"
   server_aliases = [ @new_resource.name, node['hostname'] ]
-  env = @new_resource.env
+
   # set up the Apache site
   web_app @new_resource.name do
     docroot        ::File.join(webpath, 'public')
@@ -55,19 +93,21 @@ action :create do
     cookbook       "redmine"
     server_name    server_name
     server_aliases server_aliases
-    rails_env      env
+    rails_env      environment
   end
 
   deploy_to = "#{new_resource.basedir}/#{new_resource.name}"
   repo = @new_resource.repository
-  version = "#{new_resource.version}-stable"
+  version = @new_resource.version
+
   # deploy the Redmine app
+  include_recipe "git"
   deploy_revision deploy_to do
     repo     repo
-    revision version
+    revision "#{version}-stable"
     user     node['apache']['user']
     group    node['apache']['group']
-    environment "RAILS_ENV" => env
+    environment "RAILS_ENV" => environment
     shallow_clone false
 
     before_migrate do
@@ -88,20 +128,32 @@ action :create do
         mode "644"
         variables(
           :host => 'localhost',
-          :databases => databases,
-          :rails_env => env
+          :db => database,
+          :rails_env => environment
         )
       end
 
-      execute 'bundle install --without development test' do
+    case adapter
+    when "mysql"
+      execute "bundle install --without development test postgresql sqlite" do
         cwd release_path
       end
+    when "postgresql"
+      execute "bundle install --without development test mysql sqlite" do
+        cwd release_path
+      end
+    end
       
-      # generate_secret_token for 2.x , session_store for 1.x
-      cmd = version < 2 ? "generate_session_store" : "generate_secret_token"
-      execute cmd do
+
+    if Gem::Version.new(version) < Gem::Version.new('2.0.0')
+      execute 'rake generate_session_store' do
         cwd release_path
         not_if { ::File.exists?("#{release_path}/db/schema.rb") }
+      end
+    else
+      execute 'rake generate_secret_token' do
+        cwd release_path
+        not_if { ::File.exists?("#{release_path}/config/initializers/secret_token.rb") }
       end
     end
 
