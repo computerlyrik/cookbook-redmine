@@ -19,6 +19,7 @@
 #
 
 
+include Chef::Mixin::LanguageIncludeRecipe
 
 
 action :create do
