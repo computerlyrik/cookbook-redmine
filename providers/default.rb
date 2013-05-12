@@ -83,7 +83,7 @@ action :create do
 
   webpath = "/var/www/#{new_resource.name}"
   server_name = "#{new_resource.name}.#{node['domain']}"
-#  server_alias = @new_resource.name
+  server_aliases = [@new_resource.name]
 
   # set up the Apache site
   web_app @new_resource.name do
@@ -91,7 +91,7 @@ action :create do
     template       "redmine.conf.erb"
     cookbook       "redmine"
     server_name    server_name
-#    server_aliases server_aliases
+    server_aliases server_aliases
     rails_env      environment
   end
 
