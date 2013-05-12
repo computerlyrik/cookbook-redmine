@@ -131,27 +131,28 @@ action :create do
         )
       end
 
-    case adapter
-    when "mysql"
-      execute "bundle install --without development test postgresql sqlite" do
-        cwd release_path
+      case adapter
+      when "mysql"
+        execute "bundle install --without development test postgresql sqlite" do
+          cwd release_path
+        end
+      when "postgresql"
+        execute "bundle install --without development test mysql sqlite" do
+          cwd release_path
+        end
       end
-    when "postgresql"
-      execute "bundle install --without development test mysql sqlite" do
-        cwd release_path
-      end
-    end
       
 
-    if Gem::Version.new(version) < Gem::Version.new('2.0.0')
-      execute 'rake generate_session_store' do
-        cwd release_path
-        not_if { ::File.exists?("#{release_path}/db/schema.rb") }
-      end
-    else
-      execute 'rake generate_secret_token' do
-        cwd release_path
-        not_if { ::File.exists?("#{release_path}/config/initializers/secret_token.rb") }
+      if Gem::Version.new(version) < Gem::Version.new('2.0.0')
+        execute 'rake generate_session_store' do
+          cwd release_path
+          not_if { ::File.exists?("#{release_path}/db/schema.rb") }
+        end
+      else
+        execute 'rake generate_secret_token' do
+          cwd release_path
+          not_if { ::File.exists?("#{release_path}/config/initializers/secret_token.rb") }
+        end
       end
     end
 
