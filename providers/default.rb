@@ -29,6 +29,7 @@ action :create do
   redmine_sql = "/tmp/redmine_#{@new_resource.name}.sql"
 
   template redmine_sql do
+    cookbook "redmine"
     source 'redmine.sql.erb'
     variables(
       :host => 'localhost',
@@ -79,6 +80,7 @@ action :create do
       end
 
       template "#{deploy_to}/shared/config/database.yml" do
+        cookbook "redmine"
         source "database.yml.erb"
 #        owner node['redmine']['user']
 #        group node['redmine']['group']
