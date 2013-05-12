@@ -52,6 +52,7 @@ action :create do
   web_app @new_resource.name do
     docroot        ::File.join(webpath, 'public')
     template       "redmine.conf.erb"
+    cookbook       "redmine"
     server_name    server_name
     server_aliases server_aliases
     rails_env      env
