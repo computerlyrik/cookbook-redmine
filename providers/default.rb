@@ -23,16 +23,11 @@
 
 action :create do
 
+  # Some handy vars
+  environment = @new_resource.env
+  adapter = @new_resource.db_adapter
 
-# Some handy vars
-environment = @new_resource.env
-adapter = @new_resource.db_adapter
-
-database = {:adapter => @new_resource.db_adapter, :database => @new_resource.db_database, :user => @new_resource.db_username, :password => @new_resource.db_password}
-
-
-
-
+  database = {:adapter => @new_resource.db_adapter, :database => @new_resource.db_database, :user => @new_resource.db_username, :password => @new_resource.db_password}
 
   case adapter
   when "mysql"
@@ -72,6 +67,7 @@ database = {:adapter => @new_resource.db_adapter, :database => @new_resource.db_
 
   database_user @new_resource.db_username do
     connection connection_info
+    database_name new_resource.db_database
     password new_resource.db_password
     case adapter
     when "mysql"
@@ -79,12 +75,14 @@ database = {:adapter => @new_resource.db_adapter, :database => @new_resource.db_
     when "postgresql"
       provider Chef::Provider::Database::PostgresqlUser
     end
-    action :create
+    privileges [:all]
+    action [:create, :grant]
   end
+
 
   webpath = "/var/www/#{new_resource.name}"
   server_name = "#{new_resource.name}.#{node['domain']}"
-  server_aliases = [ @new_resource.name, node['hostname'] ]
+#  server_alias = @new_resource.name
 
   # set up the Apache site
   web_app @new_resource.name do
@@ -92,7 +90,7 @@ database = {:adapter => @new_resource.db_adapter, :database => @new_resource.db_
     template       "redmine.conf.erb"
     cookbook       "redmine"
     server_name    server_name
-    server_aliases server_aliases
+#    server_aliases server_aliases
     rails_env      environment
   end
 
