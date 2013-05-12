@@ -25,7 +25,7 @@ action :create do
 
   # set up the databas
   database = { :adapter => @new_resource.db_adapter, :database => @new_resource.db_database, :username => @new_resource.db_username, :password => @new_resource.db_password }
-  databases = {:env => @new_resource.env, :db => database}
+  databases = {@new_resource.env => database}
   redmine_sql = "/tmp/redmine_#{@new_resource.name}.sql"
 
   template redmine_sql do
