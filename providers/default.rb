@@ -40,7 +40,7 @@ action :create do
     command "#{node['mysql']['mysql_bin']} -u root #{node['mysql']['server_root_password'].empty? ? '' : '-p' }\"#{node['mysql']['server_root_password']}\" < #{redmine_sql}"
     action :nothing
     subscribes :run, resources("template[#{redmine_sql}]"), :immediately
-    not_if { ::File.exists?("/var/lib/mysql/#{@new_resource.db_database}") }
+    not_if { ::File.exists?("/var/lib/mysql/#{new_resource.db_database}") }
   end
 
   webpath = "/var/www/#{new_resource.name}"
