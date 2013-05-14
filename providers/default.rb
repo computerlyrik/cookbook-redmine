@@ -134,11 +134,11 @@ action :create do
 
       case adapter
       when "mysql"
-        execute "bundle install --without development test mysql sqlite" do
+        execute "bundle install --without development test postgresql sqlite" do
           cwd release_path
         end
       when "postgresql"
-        execute "bundle install --without development test postgresql sqlite" do
+        execute "bundle install --without development test mysql sqlite" do
           cwd release_path
         end
       end
