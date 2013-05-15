@@ -99,14 +99,12 @@ action :create do
 
   end
 
+  template = @new_resource.ssl ? "redmine_ssl.conf.erb" : "redmine.conf.erb"
+
   # set up the Apache site
   web_app @new_resource.name do
     docroot        ::File.join(webpath, 'public')
-    if @new_resource.ssl
-      template     "redmine_ssl.conf.erb"
-    else
-      template     "redmine.conf.erb"
-    end
+    template       template
     cookbook       "redmine"
     server_name    server_name
     server_aliases server_aliases
