@@ -178,17 +178,10 @@ action :create do
         end
       end
 
-      plugins.each do |plugin, repo|
-        git "#{release_path}/plugins/#{plugin}" do
-          repository repo
-          action :sync
-        end
-      end
-
     end
 
     migrate true
-    migration_command 'rake db:migrate && rake redmine:plugins:migrate'
+    migration_command 'rake db:migrate'
 
     create_dirs_before_symlink %w{tmp public config tmp/pdf public/plugin_assets}
 
@@ -196,6 +189,17 @@ action :create do
       link webpath do
         to release_path
       end
+
+    plugins.each do |plugin|
+      redmine_plugin plugin.name do
+        redmine_dir release_path
+        repository plugin.repo
+        if plugin.gems
+          gems = plugin.gems
+        end
+      end
+    end
+
     end
     action :deploy
     notifies :restart, "service[apache2]"
