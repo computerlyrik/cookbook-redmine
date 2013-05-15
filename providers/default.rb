@@ -189,7 +189,7 @@ action :create do
       link webpath do
         to release_path
       end
-
+    Chef::Log.info("installing Plugins #{plugins}")
     plugins.each do |plugin|
       redmine_plugin plugin.name do
         redmine_dir release_path

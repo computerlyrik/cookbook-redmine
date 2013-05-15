@@ -27,4 +27,4 @@ attribute :repository, :kind_of => String, :required => true
 attribute :redmine_dir, :kind_of => String, :required => true
 attribute :env, :kind_of => String, :default =>  "production"
 
-attributes :gems, :kind_of => Array
+attribute :gems, :kind_of => Array
