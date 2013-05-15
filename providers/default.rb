@@ -191,15 +191,15 @@ action :create do
       end
     Chef::Log.info("installing Plugins #{plugins}")
     plugins.each do |plugin|
-      redmine_plugin plugin.name do
+      redmine_plugin plugin[:name] do
         redmine_dir release_path
         env         "RAILS_ENV" => environment
-        repository  plugin.repo
-        if plugin.gems
-          gems = plugin.gems
+        repository  plugin[:repo]
+        if plugin[:gems]
+          gems = plugin[:gems]
         end
-
       end
+
     end
 
     end
