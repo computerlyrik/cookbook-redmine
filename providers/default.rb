@@ -89,6 +89,7 @@ action :create do
     apache_module "ssl"
 
     template "#{node['apache']['dir']}/conf.d/ssl_named_hosts.conf" do
+      cookbook "redmine"
       notifies :restart, "service[apache2]"
       mode 0644
     end
