@@ -35,7 +35,7 @@ action :create do
   end
 
   execute "rake redmine:plugins:migrate" do
-    env {'RAKE_ENV' => new_resource.env}
+    environment 'RAKE_ENV' => new_resource.env
     cwd new_resource.redmine_dir
   end
 
