@@ -119,6 +119,7 @@ action :create do
   deploy_to = "#{new_resource.basedir}/#{new_resource.name}"
   repo = @new_resource.repository
   version = @new_resource.version
+  plugins = @new_resource.plugins
 
   # deploy the Redmine app
   include_recipe "git"
@@ -176,10 +177,18 @@ action :create do
           not_if { ::File.exists?("#{release_path}/config/initializers/secret_token.rb") }
         end
       end
+
+      plugins.each do |plugin, repo|
+        git "#{release_path}/plugins/#{plugin}" do
+          repository repo
+          action :sync
+        end
+      end
+
     end
 
     migrate true
-    migration_command 'rake db:migrate'
+    migration_command 'rake db:migrate && rake redmine:plugins:migrate'
 
     create_dirs_before_symlink %w{tmp public config tmp/pdf public/plugin_assets}
 
