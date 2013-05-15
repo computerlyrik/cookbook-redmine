@@ -85,10 +85,28 @@ action :create do
   server_name = "#{new_resource.name}.#{node['domain']}"
   server_aliases = [@new_resource.name]
 
+  if @new_resource.ssl
+    apache_module "ssl" do
+      conf true
+    end
+    include_recipe "x509"
+
+    x509_certificate server_name do
+      ca "MyCA"
+      key "/etc/ssl/private/#{server_name}.key"
+      certificate "/etc/ssl/certs/#{server_name}.cert"
+    end
+
+  end
+
   # set up the Apache site
   web_app @new_resource.name do
     docroot        ::File.join(webpath, 'public')
-    template       "redmine.conf.erb"
+    if @new_resource.ssl
+      template     "redmine_ssl.conf.erb"
+    else
+      template     "redmine.conf.erb"
+    end
     cookbook       "redmine"
     server_name    server_name
     server_aliases server_aliases

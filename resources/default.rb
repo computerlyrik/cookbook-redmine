@@ -35,5 +35,7 @@ attribute :basedir, :kind_of => String, :default =>  "/opt/redmine"
 attribute :db_adapter, :kind_of => String, :default => "mysql"
 attribute :db_database, :kind_of => String, :required => true
 attribute :db_username, :kind_of => String, :required => true
-attribute :db_password, :kind_of => String, :required => true
+attribute :db_password, :kind_of => String
+
+attribute :ssl, :kind_of => [TrueClass, FalseClass], :default => false
 
