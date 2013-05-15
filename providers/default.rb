@@ -86,9 +86,14 @@ action :create do
   server_aliases = [@new_resource.name]
 
   if @new_resource.ssl
-    apache_module "ssl" do
-      conf true
+    apache_module "ssl"
+
+    template "#{node['apache']['dir']}/conf.d/ssl_named_hosts.conf" do
+      source "ssl_named_hosts.conf.erb"
+      notifies :restart, "service[apache2]"
+      mode 0644
     end
+
     include_recipe "x509"
 
     x509_certificate server_name do
