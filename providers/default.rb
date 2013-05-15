@@ -89,7 +89,6 @@ action :create do
     apache_module "ssl"
 
     template "#{node['apache']['dir']}/conf.d/ssl_named_hosts.conf" do
-      source "ssl_named_hosts.conf.erb"
       notifies :restart, "service[apache2]"
       mode 0644
     end
