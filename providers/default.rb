@@ -92,10 +92,10 @@ action :create do
     template ssl_config do
       source "ssl.cnf"
       cookbook "redmine"
-      variables { :server_name => server_name }
+      variables ( :server_name => server_name )
     end
 
-    execute "openssl req -config #{ssl_config} -new -x509 -days 3650 -nodes -out /etc/ssl/certs/#{server_name}.cert crt -keyout /etc/ssl/private/#{server_name}.key" do
+    execute "openssl req -config #{ssl_config} -new -x509 -days 3650 -nodes -out /etc/ssl/certs/#{server_name}.crt -keyout /etc/ssl/private/#{server_name}.key" do
       action :nothing
       subscribes :run, "template[#{ssl_config}]", :immediately
     end
