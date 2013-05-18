@@ -35,6 +35,12 @@ action :create do
     action :sync
   end
 
+  #install fresh deps
+  execute "bundle install" do
+    environment 'RAILS_ENV' => new_resource.rails_env
+    cwd new_resource.redmine_dir
+  end
+
   execute "rake redmine:plugins:migrate" do
     environment 'RAILS_ENV' => new_resource.rails_env
     cwd new_resource.redmine_dir
