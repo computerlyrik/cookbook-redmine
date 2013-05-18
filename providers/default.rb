@@ -86,7 +86,7 @@ action :create do
   server_aliases = [@new_resource.name]
 
   if @new_resource.ssl
-    apache_module "ssl"
+    include_recipe "apache2::mod_ssl"
 
     ssl_config = "/etc/ssl/#{server_name}.cnf"
     template ssl_config do
