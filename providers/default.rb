@@ -195,6 +195,9 @@ action :create do
         redmine_dir release_path
         rails_env   environment
         repository  plugin[:repo]
+        if plugin[:revision]
+          revision plugin[:revision]
+        end
         if plugin[:gems]
           gems = plugin[:gems]
         end

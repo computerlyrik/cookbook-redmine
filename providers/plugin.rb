@@ -31,6 +31,7 @@ action :create do
 
   git "#{new_resource.redmine_dir}/plugins/#{new_resource.name}" do
     repository new_resource.repository
+    revision new_resource.revision
     action :sync
   end
 
