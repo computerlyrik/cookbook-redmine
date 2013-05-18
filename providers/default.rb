@@ -88,18 +88,22 @@ action :create do
   if @new_resource.ssl
     apache_module "ssl"
 
+    ssl_config = "/etc/ssl/#{server_name}.cnf"
+    template ssl_config do
+      source "ssl.cnf"
+      cookbook "redmine"
+      variables { :server_name => server_name }
+    end
+
+    execute "openssl req -config #{ssl_config} -new -x509 -days 3650 -nodes -out /etc/ssl/certs/#{server_name}.cert crt -keyout /etc/ssl/private/#{server_name}.key" do
+      action :nothing
+      subscribes :run, "template[#{ssl_config}]", :immediately
+    end
+
     template "#{node['apache']['dir']}/conf.d/ssl_named_hosts.conf" do
       cookbook "redmine"
       notifies :restart, "service[apache2]"
       mode 0644
-    end
-
-    include_recipe "x509"
-
-    x509_certificate server_name do
-      ca "MyCA"
-      key "/etc/ssl/private/#{server_name}.key"
-      certificate "/etc/ssl/certs/#{server_name}.cert"
     end
 
   end
