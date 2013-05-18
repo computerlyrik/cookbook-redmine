@@ -4,7 +4,7 @@
   DocumentRoot <%= @params[:docroot] %>
 
   SSLEngine on
-  SSLCertificateFile /etc/ssl/certs/<%= @params[:server_name] %>.crt
+  SSLCertificateFile /etc/ssl/certs/<%= @params[:server_name] %>.pem
   SSLCertificateKeyFile /etc/ssl/private/<%= @params[:server_name] %>.key
 
   RailsEnv <%= @params[:rails_env] %>

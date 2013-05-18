@@ -27,5 +27,3 @@ attribute :repository, :kind_of => String, :required => true
 attribute :revision, :kind_of => String, :default => "master"
 attribute :redmine_dir, :kind_of => String, :required => true
 attribute :rails_env, :kind_of => String, :default =>  "production"
-
-attribute :gems, :kind_of => Array
