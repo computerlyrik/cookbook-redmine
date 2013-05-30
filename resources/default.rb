@@ -39,4 +39,4 @@ attribute :db_password, :kind_of => String
 
 attribute :ssl, :kind_of => [TrueClass, FalseClass], :default => false
 
-attribute :plugins, :kind_of => Array
+attribute :plugins, :kind_of => Array, :default => []
